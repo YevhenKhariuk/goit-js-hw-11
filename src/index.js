@@ -25,7 +25,7 @@ async function performSearch() {
   try {
     const response = await axios.get('https://pixabay.com/api/', {
       params: {
-        key: 'YOUR_API_KEY',
+        key: '37652334-f3be52d10db73a6ca4f17c1cd',
         q: searchQuery,
         image_type: 'photo',
         orientation: 'horizontal',
