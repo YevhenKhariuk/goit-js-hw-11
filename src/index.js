@@ -1,5 +1,5 @@
 import axios from 'axios';
-import * as notiflix from 'notiflix';
+import Notiflix from 'notiflix';
 
 const searchForm = document.getElementById('search-form');
 const gallery = document.querySelector('.gallery');
@@ -11,7 +11,6 @@ const perPage = 40;
 let totalHits = 0;
 
 searchForm.addEventListener('submit', handleFormSubmit);
-loadMoreBtn.addEventListener('click', fetchNextPage);
 
 async function handleFormSubmit(event) {
   event.preventDefault();
@@ -23,6 +22,7 @@ async function handleFormSubmit(event) {
   page = 1; // Reset the page number
   gallery.innerHTML = ''; // Clear the gallery
   loadMoreBtn.style.display = 'none'; // Hide the load more button
+  totalHits = 0; // Reset the totalHits count
   fetchImages();
 }
 
@@ -34,10 +34,10 @@ async function fetchImages() {
     const response = await axios.get(url);
     const { hits, totalHits: newTotalHits } = response.data;
 
-    totalHits = newTotalHits;
+    totalHits = newTotalHits; // Update the totalHits count
 
     if (hits.length === 0) {
-      notiflix.Notify.failure(
+      Notiflix.Notify.failure(
         'Sorry, there are no images matching your search query. Please try again.'
       );
       return;
@@ -46,19 +46,26 @@ async function fetchImages() {
     renderImages(hits);
     page++;
 
-    if (page > 1) {
+    if (page === 2) {
       loadMoreBtn.style.display = 'block';
+      loadMoreBtn.addEventListener('click', fetchNextPage);
     }
 
     if (hits.length < perPage || page * perPage >= totalHits) {
       loadMoreBtn.style.display = 'none';
-      notiflix.Notify.info(
-        "We're sorry, but you've reached the end of search results."
-      );
+      if (page > 2) {
+        Notiflix.Notify.info(
+          "We're sorry, but you've reached the end of search results."
+        );
+      }
+    }
+
+    if (page === 2) {
+      Notiflix.Notify.success(`Hooray! We found ${totalHits} images.`); // Display totalHits message
     }
   } catch (error) {
     console.log(error);
-    notiflix.Notify.failure(
+    Notiflix.Notify.failure(
       'An error occurred while fetching images. Please try again later.'
     );
   }
