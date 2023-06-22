@@ -1,76 +1,101 @@
-import 'slim-select/dist/slimselect.css';
-import SlimSelect from 'slim-select';
-import Notiflix from 'notiflix';
-import { fetchBreeds, fetchCatByBreed } from './cat-api.js';
+import axios from 'axios';
 
-const breedSelect = document.querySelector('.breed-select');
-const loader = document.querySelector('.loader');
-const error = document.querySelector('.error');
-const catInfo = document.querySelector('.cat-info');
+const searchForm = document.getElementById('search-form');
+const loadMoreBtn = document.querySelector('.load-more');
+const gallery = document.querySelector('.gallery');
 
-async function init() {
+let page = 1;
+let searchQuery = '';
+
+searchForm.addEventListener('submit', e => {
+  e.preventDefault();
+  searchQuery = e.target.searchQuery.value.trim();
+  if (searchQuery) {
+    performSearch();
+  }
+});
+
+loadMoreBtn.addEventListener('click', () => {
+  performSearch();
+});
+
+async function performSearch() {
+  clearGallery();
+
   try {
-    loader.classList.remove('hidden');
-    const breeds = await fetchBreeds();
-    const options = breeds.map(breed => ({
-      value: breed.id,
-      text: breed.name,
-    }));
-    new SlimSelect({
-      select: breedSelect,
-      data: options,
+    const response = await axios.get('https://pixabay.com/api/', {
+      params: {
+        key: 'YOUR_API_KEY',
+        q: searchQuery,
+        image_type: 'photo',
+        orientation: 'horizontal',
+        safesearch: true,
+        page: page,
+        per_page: 40,
+      },
     });
-  } catch (err) {
-    error.classList.remove('hidden');
-    Notiflix.Notify.Failure('Помилка: не вдалося завантажити породи котів');
-  } finally {
-    loader.classList.add('hidden');
+
+    const { totalHits, hits } = response.data;
+
+    if (hits.length === 0) {
+      showNotification('No images found for your search query.');
+      return;
+    }
+
+    appendImages(hits);
+
+    if (hits.length >= totalHits) {
+      loadMoreBtn.style.display = 'none';
+    } else {
+      loadMoreBtn.style.display = 'block';
+    }
+
+    page++;
+  } catch (error) {
+    showNotification(
+      'An error occurred while fetching images. Please try again later.'
+    );
   }
 }
 
-async function handleBreedSelect(event) {
-  try {
-    loader.classList.remove('hidden');
-    const breedId = event.target.value;
-    const catData = await fetchCatByBreed(breedId);
-    error.classList.add('hidden');
-    displayCatInfo(catData);
-  } catch (err) {
-    error.classList.remove('hidden');
-    Notiflix.Notify.Failure('Помилка: не вдалося завантажити дані про кота');
-  } finally {
-    loader.classList.add('hidden');
-  }
+function appendImages(images) {
+  const fragment = document.createDocumentFragment();
+
+  images.forEach(image => {
+    const imageCard = document.createElement('div');
+    imageCard.classList.add('photo-card');
+
+    const imageElement = document.createElement('img');
+    imageElement.src = image.webformatURL;
+    imageElement.alt = image.tags;
+
+    const infoContainer = document.createElement('div');
+    infoContainer.classList.add('info');
+
+    const views = document.createElement('div');
+    views.classList.add('info-item');
+    views.textContent = `Views: ${image.views}`;
+
+    const downloads = document.createElement('div');
+    downloads.classList.add('info-item');
+    downloads.textContent = `Downloads: ${image.downloads}`;
+
+    infoContainer.appendChild(views);
+    infoContainer.appendChild(downloads);
+
+    imageCard.appendChild(imageElement);
+    imageCard.appendChild(infoContainer);
+
+    fragment.appendChild(imageCard);
+  });
+
+  gallery.appendChild(fragment);
 }
 
-function displayCatInfo(catData) {
-  catInfo.innerHTML = '';
-
-  const img = document.createElement('img');
-  img.src = catData.url;
-  img.alt = catData.breeds[0].name;
-  catInfo.appendChild(img);
-
-  const textContainer = document.createElement('div');
-
-  const name = document.createElement('h2');
-  name.textContent = catData.breeds[0].name;
-  textContainer.appendChild(name);
-
-  const description = document.createElement('p');
-  description.textContent = catData.breeds[0].description;
-  textContainer.appendChild(description);
-
-  const temperamentHeader = document.createElement('span');
-  temperamentHeader.textContent = 'Temperament: ';
-  temperamentHeader.style.fontWeight = 'bold';
-  const temperament = document.createElement('span');
-  temperament.textContent = catData.breeds[0].temperament;
-  textContainer.appendChild(temperamentHeader);
-  textContainer.appendChild(temperament);
-
-  catInfo.appendChild(textContainer);
+function clearGallery() {
+  gallery.innerHTML = '';
 }
 
-init();
-breedSelect.addEventListener('change', handleBreedSelect);
+function showNotification(message) {
+  alert(message);
+}

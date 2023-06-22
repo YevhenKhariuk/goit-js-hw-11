@@ -1,24 +1,25 @@
 {
-  "name": "goit-js-hw-10",
+  "name": "goit-js-hw-11",
   "version": "2.0.0",
   "description": "",
-  "homepage": "https://yevhenkhariuk.github.io/goit-js-hw-10/",
+  "homepage": "https://yevhenkhariuk.github.io/goit-js-hw-11/",
   "scripts": {
     "start": "parcel src/*.html",
-    "build": "parcel build src/*.html --public-url /goit-js-hw-10/"
+    "build": "parcel build src/*.html --public-url /goit-js-hw-11/"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/YevhenKhariuk.github.io/goit-js-hw-10.git"
+    "url": "git+https://github.com/YevhenKhariuk.github.io/goit-js-hw-11.git"
   },
   "keywords": [],
   "author": "Alexander Repeta <alexander.repeta@gmail.com>",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/YevhenKhariuk.github.io/goit-js-hw-10.git"
+    "url": "https://github.com/YevhenKhariuk.github.io/goit-js-hw-11.git"
   },
   "dependencies": {
     "@vimeo/player": "^2.20.1",
+    "axios": "^1.4.0",
     "flatpickr": "^4.6.13",
     "lodash.throttle": "^4.1.1",
     "modern-normalize": "^1.1.0",

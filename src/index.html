@@ -1,19 +1,29 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="./styles.css" />
-    <title>Homework 10</title>
+    <title>Search Images</title>
+    <link rel="stylesheet" type="text/css" href="./styles.css" />
   </head>
   <body>
-    <select class="breed-select"></select>
-    <span class="loader hidden"></span>
-    <p class="error hidden">
-      Oops! Something went wrong! Try reloading the page!
-    </p>
-    <div class="cat-info hidden"></div>
-    <script src="./index.js" type="module"></script>
-    <script src="./cat-api.js" type="module"></script>
+    <div class="container">
+      <h1>Search Images</h1>
+      <form class="search-form" id="search-form">
+        <input
+          type="text"
+          name="searchQuery"
+          autocomplete="off"
+          placeholder="Search images..."
+        />
+        <button type="submit">Search</button>
+      </form>
+
+      <div class="gallery">
+        <!-- Image cards will be dynamically added here -->
+      </div>
+
+      <button type="module" type="button" class="load-more">Load more</button>
+    </div>
+
+    <script src="./index.js"></script>
   </body>
 </html>
