@@ -1,101 +1,98 @@
 import axios from 'axios';
+import * as notiflix from 'notiflix';
 
 const searchForm = document.getElementById('search-form');
-const loadMoreBtn = document.querySelector('.load-more');
 const gallery = document.querySelector('.gallery');
+const loadMoreBtn = document.querySelector('.load-more');
 
 let page = 1;
-let searchQuery = '';
 
-searchForm.addEventListener('submit', e => {
-  e.preventDefault();
-  searchQuery = e.target.searchQuery.value.trim();
-  if (searchQuery) {
-    performSearch();
+searchForm.addEventListener('submit', handleFormSubmit);
+loadMoreBtn.addEventListener('click', fetchImages);
+
+async function handleFormSubmit(event) {
+  event.preventDefault();
+  const searchQuery = event.target.elements.searchQuery.value.trim();
+  if (searchQuery === '') {
+    return;
   }
-});
 
-loadMoreBtn.addEventListener('click', () => {
-  performSearch();
-});
+  page = 1; // Reset the page number
+  gallery.innerHTML = ''; // Clear the gallery
+  fetchImages(searchQuery);
+}
 
-async function performSearch() {
-  clearGallery();
-
+async function fetchImages(searchQuery) {
   try {
-    const response = await axios.get('https://pixabay.com/api/', {
-      params: {
-        key: '37652334-f3be52d10db73a6ca4f17c1cd',
-        q: searchQuery,
-        image_type: 'photo',
-        orientation: 'horizontal',
-        safesearch: true,
-        page: page,
-        per_page: 40,
-      },
-    });
+    const apiKey = '37652334-f3be52d10db73a6ca4f17c1cd'; // Replace with your actual API key
+    const perPage = 40;
+    const url = `https://pixabay.com/api/?key=${apiKey}&q=${searchQuery}&image_type=photo&orientation=horizontal&safesearch=true&page=${page}&per_page=${perPage}`;
 
-    const { totalHits, hits } = response.data;
+    const response = await axios.get(url);
+    const images = response.data.hits;
 
-    if (hits.length === 0) {
-      showNotification('No images found for your search query.');
+    if (images.length === 0) {
+      notiflix.Notify.failure(
+        'Sorry, there are no images matching your search query. Please try again.'
+      );
       return;
     }
 
-    appendImages(hits);
+    renderImages(images);
+    page++;
 
-    if (hits.length >= totalHits) {
+    if (page > 1) {
+      scrollPage();
+    }
+
+    if (images.length < perPage) {
       loadMoreBtn.style.display = 'none';
+      notiflix.Notify.info(
+        "We're sorry, but you've reached the end of search results."
+      );
     } else {
       loadMoreBtn.style.display = 'block';
     }
-
-    page++;
   } catch (error) {
-    showNotification(
+    console.log(error);
+    notiflix.Notify.failure(
       'An error occurred while fetching images. Please try again later.'
     );
   }
 }
 
-function appendImages(images) {
-  const fragment = document.createDocumentFragment();
-
-  images.forEach(image => {
-    const imageCard = document.createElement('div');
-    imageCard.classList.add('photo-card');
-
-    const imageElement = document.createElement('img');
-    imageElement.src = image.webformatURL;
-    imageElement.alt = image.tags;
-
-    const infoContainer = document.createElement('div');
-    infoContainer.classList.add('info');
-
-    const views = document.createElement('div');
-    views.classList.add('info-item');
-    views.textContent = `Views: ${image.views}`;
-
-    const downloads = document.createElement('div');
-    downloads.classList.add('info-item');
-    downloads.textContent = `Downloads: ${image.downloads}`;
-
-    infoContainer.appendChild(views);
-    infoContainer.appendChild(downloads);
-
-    imageCard.appendChild(imageElement);
-    imageCard.appendChild(infoContainer);
-
-    fragment.appendChild(imageCard);
-  });
-
-  gallery.appendChild(fragment);
+function renderImages(images) {
+  const imageCards = images.map(image => createImageCard(image));
+  gallery.innerHTML += imageCards.join('');
 }
 
-function clearGallery() {
-  gallery.innerHTML = '';
+function createImageCard(image) {
+  return `
+    <div class="photo-card">
+      <a href="${image.largeImageURL}" data-lightbox="gallery">
+        <img src="${image.webformatURL}" alt="${image.tags}" loading="lazy" />
+      </a>
+      <div class="info">
+        <p class="info-item">
+          <b>Tags:</b> ${image.tags}
+        </p>
+        <p class="info-item">
+          <b>Likes:</b> ${image.likes}
+        </p>
+        <p class="info-item">
+          <b>Views:</b> ${image.views}
+        </p>
+      </div>
+    </div>
+  `;
 }
 
-function showNotification(message) {
-  alert(message);
+function scrollPage() {
+  const { height: documentHeight } = document.documentElement;
+  const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+  const distanceFromBottom = scrollHeight - (scrollTop + clientHeight);
+
+  if (distanceFromBottom < 100 && page > 1) {
+    window.scrollTo({ top: documentHeight, behavior: 'smooth' });
+  }
 }
