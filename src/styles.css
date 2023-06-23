@@ -84,17 +84,3 @@ body {
 .photo-card .info-item {
   margin-bottom: 5px;
 }
-
-.load-more {
-  display: block;
-  margin: 0 auto;
-  padding: 10px;
-  background-color: #1e90ff;
-  color: #fff;
-  border: none;
-  cursor: pointer;
-}
-
-.load-more:hover {
-  opacity: 0.8;
-}

@@ -1,14 +1,15 @@
 import axios from 'axios';
 import Notiflix from 'notiflix';
+import SimpleLightbox from 'simplelightbox';
+import 'simplelightbox/dist/simple-lightbox.min.css';
 
 const searchForm = document.getElementById('search-form');
 const gallery = document.querySelector('.gallery');
-const loadMoreBtn = document.querySelector('.load-more');
-
 let searchQuery = '';
 let page = 1;
 const perPage = 40;
 let totalHits = 0;
+let lightbox;
 
 searchForm.addEventListener('submit', handleFormSubmit);
 
@@ -21,7 +22,6 @@ async function handleFormSubmit(event) {
 
   page = 1; // Reset the page number
   gallery.innerHTML = ''; // Clear the gallery
-  loadMoreBtn.style.display = 'none'; // Hide the load more button
   totalHits = 0; // Reset the totalHits count
   fetchImages();
 }
@@ -46,34 +46,14 @@ async function fetchImages() {
     renderImages(hits);
     page++;
 
-    if (page === 2) {
-      loadMoreBtn.style.display = 'block';
-      loadMoreBtn.addEventListener('click', fetchNextPage);
-    }
-
-    if (hits.length < perPage || page * perPage >= totalHits) {
-      loadMoreBtn.style.display = 'none';
-      if (page > 2) {
-        Notiflix.Notify.info(
-          "We're sorry, but you've reached the end of search results."
-        );
-      }
-    }
-
-    if (page === 2) {
-      Notiflix.Notify.success(`Hooray! We found ${totalHits} images.`); // Display totalHits message
-    }
+    // Refresh the lightbox
+    lightbox.refresh();
   } catch (error) {
     console.log(error);
     Notiflix.Notify.failure(
       'An error occurred while fetching images. Please try again later.'
     );
   }
-}
-
-async function fetchNextPage() {
-  loadMoreBtn.style.display = 'none'; // Hide the load more button
-  await fetchImages();
 }
 
 function renderImages(images) {
@@ -101,3 +81,30 @@ function createImageCard(image) {
     </div>
   `;
 }
+
+// Initialize the lightbox
+document.addEventListener('DOMContentLoaded', () => {
+  lightbox = new SimpleLightbox('.gallery a', {
+    animationSpeed: 300,
+    captions: true,
+    captionSelector: 'p.info-item',
+  });
+});
+
+// Infinite scrolling
+window.addEventListener('scroll', () => {
+  const { scrollTop, clientHeight, scrollHeight } = document.documentElement;
+  if (scrollTop + clientHeight >= scrollHeight - 100) {
+    if (totalHits > perPage * (page - 1)) {
+      fetchImages();
+    }
+  }
+});
+
+// Smooth scroll after form submission
+searchForm.addEventListener('submit', () => {
+  window.scroll({
+    top: gallery.offsetTop,
+    behavior: 'smooth',
+  });
+});
