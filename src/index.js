@@ -21,8 +21,8 @@ async function handleFormSubmit(event) {
     return;
   }
 
-  page = 1; // Reset the page number
-  gallery.innerHTML = ''; // Clear the gallery
+  page = 1;
+  gallery.innerHTML = ''; 
   const response = await fetchImages();
 
   if (response) {
@@ -40,18 +40,17 @@ async function fetchImages() {
 
     isLoading = true;
 
-    const apiKey = '37652334-f3be52d10db73a6ca4f17c1cd'; // Replace with your actual API key
+    const apiKey = '37652334-f3be52d10db73a6ca4f17c1cd';
     const url = `https://pixabay.com/api/?key=${apiKey}&q=${searchQuery}&image_type=photo&orientation=horizontal&safesearch=true&page=${page}&per_page=${perPage}`;
 
     const response = await axios.get(url);
     const { hits, totalHits: newTotalHits } = response.data;
 
-    totalHits = newTotalHits; // Update the totalHits count
+    totalHits = newTotalHits;
 
     if (page === 1 && hits.length > 0) {
       renderImages(hits);
       page++;
-      // Refresh the lightbox
       lightbox.refresh();
       if (totalHits > perPage * (page - 1)) {
         showLoader();
@@ -77,7 +76,6 @@ async function fetchImages() {
   } catch (error) {
     console.log(error);
     hideLoader();
-    // Handle the error
     return false;
   }
 }
@@ -108,7 +106,7 @@ function createImageCard(image) {
   `;
 }
 
-// Initialize the lightbox
+
 document.addEventListener('DOMContentLoaded', () => {
   lightbox = new SimpleLightbox('.gallery a', {
     animationSpeed: 300,
@@ -117,7 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-// Infinite scrolling
+
 window.addEventListener('scroll', () => {
   const { scrollTop, clientHeight, scrollHeight } = document.documentElement;
   if (scrollTop + clientHeight >= scrollHeight - 100) {
@@ -127,7 +125,7 @@ window.addEventListener('scroll', () => {
   }
 });
 
-// Smooth scroll after form submission
+
 searchForm.addEventListener('submit', () => {
   window.scroll({
     top: gallery.offsetTop,
@@ -152,7 +150,7 @@ function showNoImagesMessage() {
   Notiflix.Notify.failure('No images found.');
 }
 
-// Override Notiflix styles for "No images found" message
+
 const customStyles = document.createElement('style');
 customStyles.innerHTML = `
   .notiflix-info {
