@@ -36,11 +36,8 @@ async function fetchImages() {
 
     totalHits = newTotalHits; // Update the totalHits count
 
-    if (hits.length === 0) {
-      Notiflix.Notify.failure(
-        'Sorry, there are no images matching your search query. Please try again.'
-      );
-      return;
+    if (page === 1) {
+      Notiflix.Notify.success(`Hooray! We found ${totalHits} images.`); // Display totalHits message
     }
 
     renderImages(hits);
@@ -48,11 +45,15 @@ async function fetchImages() {
 
     // Refresh the lightbox
     lightbox.refresh();
+
+    if (totalHits > perPage * (page - 1)) {
+      showLoadMoreBtn();
+    } else {
+      hideLoadMoreBtn();
+    }
   } catch (error) {
     console.log(error);
-    Notiflix.Notify.failure(
-      'An error occurred while fetching images. Please try again later.'
-    );
+    // Handle the error
   }
 }
 
@@ -108,3 +109,15 @@ searchForm.addEventListener('submit', () => {
     behavior: 'smooth',
   });
 });
+
+// Load More button
+const loadMoreBtn = document.getElementById('load-more-btn');
+loadMoreBtn.addEventListener('click', fetchImages);
+
+function showLoadMoreBtn() {
+  loadMoreBtn.style.display = 'block';
+}
+
+function hideLoadMoreBtn() {
+  loadMoreBtn.style.display = 'none';
+}
