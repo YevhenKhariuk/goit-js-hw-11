@@ -22,8 +22,13 @@ async function handleFormSubmit(event) {
 
   page = 1; // Reset the page number
   gallery.innerHTML = ''; // Clear the gallery
-  totalHits = 0; // Reset the totalHits count
-  fetchImages();
+  const response = await fetchImages();
+
+  if (response) {
+    Notiflix.Notify.success(`Hooray! We found ${totalHits} images.`);
+  } else {
+    showNoImagesMessage();
+  }
 }
 
 async function fetchImages() {
@@ -36,24 +41,24 @@ async function fetchImages() {
 
     totalHits = newTotalHits; // Update the totalHits count
 
-    if (page === 1) {
-      Notiflix.Notify.success(`Hooray! We found ${totalHits} images.`); // Display totalHits message
-    }
-
-    renderImages(hits);
-    page++;
-
-    // Refresh the lightbox
-    lightbox.refresh();
-
-    if (totalHits > perPage * (page - 1)) {
-      showLoadMoreBtn();
+    if (page === 1 && hits.length > 0) {
+      renderImages(hits);
+      page++;
+      // Refresh the lightbox
+      lightbox.refresh();
+      if (totalHits > perPage * (page - 1)) {
+        showLoadMoreBtn();
+      } else {
+        hideLoadMoreBtn();
+      }
+      return true;
     } else {
-      hideLoadMoreBtn();
+      return false;
     }
   } catch (error) {
     console.log(error);
     // Handle the error
+    return false;
   }
 }
 
@@ -121,3 +126,17 @@ function showLoadMoreBtn() {
 function hideLoadMoreBtn() {
   loadMoreBtn.style.display = 'none';
 }
+
+function showNoImagesMessage() {
+  Notiflix.Notify.failure('No images found.');
+}
+
+// Override Notiflix styles for "No images found" message
+const customStyles = document.createElement('style');
+customStyles.innerHTML = `
+  .notiflix-info {
+    background-color: red;
+    color: white;
+  }
+`;
+document.head.appendChild(customStyles);
