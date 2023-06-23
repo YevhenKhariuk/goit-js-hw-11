@@ -10,6 +10,7 @@ let page = 1;
 const perPage = 40;
 let totalHits = 0;
 let lightbox;
+let isLoading = false;
 
 searchForm.addEventListener('submit', handleFormSubmit);
 
@@ -33,6 +34,12 @@ async function handleFormSubmit(event) {
 
 async function fetchImages() {
   try {
+    if (isLoading) {
+      return false;
+    }
+
+    isLoading = true;
+
     const apiKey = '37652334-f3be52d10db73a6ca4f17c1cd'; // Replace with your actual API key
     const url = `https://pixabay.com/api/?key=${apiKey}&q=${searchQuery}&image_type=photo&orientation=horizontal&safesearch=true&page=${page}&per_page=${perPage}`;
 
@@ -47,16 +54,29 @@ async function fetchImages() {
       // Refresh the lightbox
       lightbox.refresh();
       if (totalHits > perPage * (page - 1)) {
-        showLoadMoreBtn();
+        showLoader();
+        isLoading = false;
       } else {
-        hideLoadMoreBtn();
+        hideLoader();
+      }
+      return true;
+    } else if (page > 1 && hits.length > 0) {
+      renderImages(hits);
+      page++;
+      if (totalHits > perPage * (page - 1)) {
+        showLoader();
+        isLoading = false;
+      } else {
+        hideLoader();
       }
       return true;
     } else {
+      hideLoader();
       return false;
     }
   } catch (error) {
     console.log(error);
+    hideLoader();
     // Handle the error
     return false;
   }
@@ -101,7 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
 window.addEventListener('scroll', () => {
   const { scrollTop, clientHeight, scrollHeight } = document.documentElement;
   if (scrollTop + clientHeight >= scrollHeight - 100) {
-    if (totalHits > perPage * (page - 1)) {
+    if (totalHits > perPage * (page - 1) && !isLoading) {
       fetchImages();
     }
   }
@@ -115,16 +135,17 @@ searchForm.addEventListener('submit', () => {
   });
 });
 
-// Load More button
-const loadMoreBtn = document.getElementById('load-more-btn');
-loadMoreBtn.addEventListener('click', fetchImages);
-
-function showLoadMoreBtn() {
-  loadMoreBtn.style.display = 'block';
+function showLoader() {
+  const loader = document.createElement('div');
+  loader.classList.add('loader');
+  gallery.appendChild(loader);
 }
 
-function hideLoadMoreBtn() {
-  loadMoreBtn.style.display = 'none';
+function hideLoader() {
+  const loader = document.querySelector('.loader');
+  if (loader) {
+    gallery.removeChild(loader);
+  }
 }
 
 function showNoImagesMessage() {
